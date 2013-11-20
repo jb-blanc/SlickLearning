@@ -6,10 +6,10 @@ Pour l'instant pas de commentaire en soit dans le code, je vais les ajouter lors
 #Notes
 En attendant de trouver une meilleure solution pour l'inclusion des librairies, à la racine du projet il faut insérer l'arborescence suivante :
  - lib
- -- natives
- --- linux
- --- mac
- --- windows
+  - natives
+   - linux
+   - mac
+   - windows
 
 
 Dans lib, mettre les jar fournis par [Slick2D] (http://slick.ninjacave.com/).
