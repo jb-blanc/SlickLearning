@@ -21,4 +21,15 @@ public class PlayerConstants {
         public static final int WIDTH = 60;
         public static final int HEIGHT = 11;
     }
+
+    public static class Stats{
+        public static final int EXPERIENCE = 0;
+        public static final int LEVEL = 1;
+        public static final int HEALTH = 300;
+        public static final int STAMINA = 100;
+        public static final int STRENGTH = 5;
+        public static final int DEXTERITY = 5;
+        public static final int INTELLIGENCE = 5;
+        public static final float SPEED = .1f;
+    }
 }

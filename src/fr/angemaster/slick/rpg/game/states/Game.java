@@ -2,6 +2,8 @@ package fr.angemaster.slick.rpg.game.states;
 
 import fr.angemaster.slick.rpg.game.RPG;
 import fr.angemaster.slick.rpg.game.view.models.Player;
+import fr.angemaster.slick.rpg.game.view.utils.ConfigConstants;
+import fr.angemaster.slick.rpg.game.view.utils.WorldConstants;
 import org.newdawn.slick.*;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
@@ -14,38 +16,35 @@ import java.util.logging.Logger;
 
 public class Game extends BasicGameState{
     private final static Logger LOG = Logger.getLogger(Game.class.getName());
-    private final static int DAY_TICK = 60000;
-    private final static int NIGHT_TICK = 30000;
-    private final static int TRANSITION_TICK = 10000;
-    private final static float TRANSITION_INCREMENT = .01f;
-    private final static int TRANSITION_UPDATE = Math.round(TRANSITION_INCREMENT*TRANSITION_TICK);
     private int id;
+
+    private Map<String,Rectangle> mapObjects;
     private Player player;
     private TiledMap map;
     private float startX = 100;
     private float startY = 100;
-    private float maxSpeed = 4;
-    private float minSpeed = .1f;
     private int borderTop = 0;
     private int borderBot = 0;
     private int borderLeft = 0;
     private int borderRight = 0;
-    private Map<String,Rectangle> mapObjects;
-    private float transitionTime = 0;
+    private float dayCycleTransitionAlpha;
     private Image alphaMap;
     private Color lightColor = new Color(1f, 1f, 1f, .1f);
     private Color nightBlack = new Color(0, 0, 0, .95f);
-    private int transitionTick = 0;
-    private int nightTick = 0;
-    private int dayTick = DAY_TICK;
+    private int transitionTick;
+    private int nightTick;
+    private int dayTick;
     private boolean isNight = false;
     private boolean isDay = true;
-    private int timeAcceleration = 1;
 
     public Game(int id){
         super();
         this.id = id;
         this.mapObjects = new HashMap<String, Rectangle>();
+        this.dayCycleTransitionAlpha = WorldConstants.TRANSITION_MIN_ALPHA;
+        this.dayTick = WorldConstants.DAY_TICK;
+        this.transitionTick = WorldConstants.TRANSITION_TICK;
+        this.nightTick= WorldConstants.NIGHT_TICK;
     }
 
     @Override
@@ -79,10 +78,10 @@ public class Game extends BasicGameState{
         updateTime();
         Input ip = gc.getInput();
 
-        boolean moveup = ip.isKeyDown(Input.KEY_Z) || ip.isKeyDown(Input.KEY_UP);
-        boolean movedown = ip.isKeyDown(Input.KEY_S) || ip.isKeyDown(Input.KEY_DOWN);
-        boolean moveright = ip.isKeyDown(Input.KEY_D) || ip.isKeyDown(Input.KEY_RIGHT);
-        boolean moveleft = ip.isKeyDown(Input.KEY_Q) || ip.isKeyDown(Input.KEY_LEFT);
+        boolean moveup = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_UP);
+        boolean movedown = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_DOWN);
+        boolean moveright = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_RIGHT);
+        boolean moveleft = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_LEFT);
         boolean hasStop = !moveleft && !movedown && !moveright && !moveup;
 
         float speed = player.getSpeed();
@@ -93,88 +92,100 @@ public class Game extends BasicGameState{
         int playerW = player.getWidth();
 
         float mov = i * speed;
+        float movForTest = mov * WorldConstants.ACCELERATION;
 
-        float newPlayerPosY = moveup ? playerPosY - mov : movedown ? playerPosY + mov : playerPosY;
-        float newPlayerPosX = moveleft ? playerPosX - mov : moveright ? playerPosX + mov : playerPosX;
+        float newPlayerPosY = moveup ? playerPosY - movForTest : movedown ? playerPosY + movForTest : playerPosY;
+        float newPlayerPosX = moveleft ? playerPosX - movForTest : moveright ? playerPosX + movForTest : playerPosX;
 
         boolean cango = canGo(newPlayerPosX,newPlayerPosY);
 
         if(moveup && playerPosY > borderTop && cango)
             player.moveUp(mov);
         else if(movedown && playerPosY < borderBot-playerH && cango)
-            player.moveDown(i*speed);
+            player.moveDown(mov);
         else if(moveleft && playerPosX > borderLeft && cango)
-            player.moveLeft(i*speed);
+            player.moveLeft(mov);
         else if(moveright && playerPosX < borderRight-playerW && cango)
-            player.moveRight(i*speed);
+            player.moveRight(mov);
         else if(hasStop)
             player.playerStop();
 
-        if(ip.isKeyDown(Input.KEY_P))
+        if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_HEALTH))
             player.addHealth(1);
-        if(ip.isKeyDown(Input.KEY_O))
+        if(ip.isKeyDown(ConfigConstants.Keyboard.REM_HEALTH))
             player.removeHealth(1);
 
-        if(ip.isKeyPressed(Input.KEY_F))
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.SWITCH_TORCH))
             player.switchTorch();
 
-        if(ip.isKeyDown(Input.KEY_ADD))
+        if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_MAX_HEALTH))
             player.addMaxHealth(1);
-        if(ip.isKeyDown(Input.KEY_SUBTRACT))
+        if(ip.isKeyDown(ConfigConstants.Keyboard.REM_MAX_HEALTH))
             player.removeMaxHealth(1);
 
-        if(ip.isKeyPressed(Input.KEY_ESCAPE))
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.MENU))
             sbg.enterState(RPG.STATE_MENU);
 
-        if(ip.isKeyPressed(Input.KEY_1)){
-            if(timeAcceleration > 1)
-                timeAcceleration -= 1;
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_LESS)){
+            if(WorldConstants.ACCELERATION > 1)
+                WorldConstants.ACCELERATION -= 1;
         }
-        if(ip.isKeyPressed(Input.KEY_2)){
-            if(timeAcceleration < 11)
-                timeAcceleration += 1;
+
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_PLUS)){
+            if(WorldConstants.ACCELERATION < 1000)
+                WorldConstants.ACCELERATION += 1;
         }
 
         player.update(i);
     }
 
+    /**
+     * Update the current time and alpha on map if needed.
+     */
     private void updateTime(){
         if(isNight && !isDay && nightTick > 0){
-            nightTick -= 1*timeAcceleration;
+            nightTick -= WorldConstants.ACCELERATION;
             if(nightTick <= 0){
                 isNight = false;
             }
         }
         else if(isDay && !isNight && dayTick > 0){
-            dayTick -= 1*timeAcceleration;
+            dayTick -= WorldConstants.ACCELERATION;
             if(dayTick <= 0){
                 isDay = false;
             }
         }
         else if(!isNight && !isDay && transitionTick > 0){
-            transitionTick -= 1*timeAcceleration;
-            if(transitionTick%TRANSITION_UPDATE == 0){
-                if(dayTick <= 0)
-                    transitionTime += TRANSITION_INCREMENT;
-                else if(nightTick <= 0)
-                    transitionTime -= TRANSITION_INCREMENT;
+            transitionTick -= WorldConstants.ACCELERATION;
+            double modulo = (WorldConstants.TRANSITION_UPDATE/WorldConstants.ACCELERATION);
+            if(modulo > 0){
+                if(transitionTick%modulo == 0){
+                    if(dayTick <= 0)
+                        dayCycleTransitionAlpha += WorldConstants.TRANSITION_ALPHA_INC;
+                    else if(nightTick <= 0)
+                        dayCycleTransitionAlpha -= WorldConstants.TRANSITION_ALPHA_INC;
+                }
             }
         }
 
         if(!isDay && dayTick <= 0 && transitionTick <= 0){
             isNight = true;
-            dayTick = DAY_TICK;
-            transitionTick = TRANSITION_TICK;
-            transitionTime = 1;
+            dayTick = WorldConstants.DAY_TICK;
+            transitionTick = WorldConstants.TRANSITION_TICK;
+            dayCycleTransitionAlpha = WorldConstants.TRANSITION_MAX_ALPHA;
         }
+
         if(!isNight && nightTick <= 0 && transitionTick <= 0){
             isDay = true;
-            nightTick = NIGHT_TICK;
-            transitionTick = TRANSITION_TICK;
-            transitionTime = 0;
+            nightTick = WorldConstants.NIGHT_TICK;
+            transitionTick = WorldConstants.TRANSITION_TICK;
+            dayCycleTransitionAlpha = WorldConstants.TRANSITION_MIN_ALPHA;
         }
     }
 
+    /**
+     * Load all objects contained on map and store a Rectangle corresponding to it.
+     */
     private void loadMapObjects(){
         int groupId = 0;
         int objectsCount = map.getObjectCount(groupId);
@@ -190,24 +201,41 @@ public class Game extends BasicGameState{
         }
     }
 
+    /**
+     * Check if the player can go to a given location
+     * @param newX the new x position of the player
+     * @param newY the new y position of the player
+     * @return true if no obstacle, false otherwise.
+     */
     private boolean canGo(float newX, float newY){
         Rectangle r = new Rectangle(newX+10,newY+22,player.getCollideShape().getWidth(),player.getCollideShape().getHeight());
         for(Rectangle obj: mapObjects.values()){
             if(obj.intersects(r))
                 return false;
         }
-
         return true;
     }
 
+    /**
+     * Render a String on top of screen displaying time informations such as acceleration, day tick, night tick, transition tick, alpha value
+     * @param gc the game container
+     * @param g the graphics
+     */
     public void renderTime(GameContainer gc, Graphics g){
-        String strSpeed = "Acceleration: x"+timeAcceleration+" | Day: "+ dayTick+" | Night: "+nightTick+" | Transition: "+ transitionTick+ " | Alpha: "+transitionTime;
+        String strSpeed = "Acceleration: x"+WorldConstants.ACCELERATION+" | Day: "+ dayTick+" | Night: "+nightTick+" | Transition: "+ transitionTick+ " | Alpha: "+ dayCycleTransitionAlpha;
         g.setColor(Color.green);
         int strWidth = g.getFont().getWidth(strSpeed);
         int width = gc.getWidth();
         g.drawString(strSpeed, (width/2)-(strWidth/2), 0);
     }
 
+    /**
+     * Draw a black rectangle (with a given alpha) to simulate night in game.
+     * This method although render the player flashlight.
+     * @param gc the game container
+     * @param g the graphics
+     * @throws SlickException
+     */
     private void renderNightLayout(GameContainer gc, Graphics g) throws SlickException {
         int size = 200;
         int maxSize = 600;
@@ -217,7 +245,7 @@ public class Game extends BasicGameState{
         int maxHalfAngle = 20;
         int angle[] = {0,90,180,270};
 
-        nightBlack.a = transitionTime;
+        nightBlack.a = dayCycleTransitionAlpha;
 
         alphaMap.getGraphics().clear();
         alphaMap.getGraphics().setColor(nightBlack);

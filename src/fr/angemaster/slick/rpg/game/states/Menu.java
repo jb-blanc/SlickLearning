@@ -1,7 +1,7 @@
 package fr.angemaster.slick.rpg.game.states;
 
 import fr.angemaster.slick.rpg.game.RPG;
-import fr.angemaster.slick.rpg.game.view.models.MenuItem;
+import fr.angemaster.slick.rpg.game.view.gui.MenuButton;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class Menu extends BasicGameState {
     private final static Logger LOG = Logger.getLogger(Menu.class.getName());
     private int id;
-    private MenuItem mPlay,mHigh,mQuit;
+    private MenuButton mPlay,mHigh,mQuit;
 
     public Menu(int id){
         super();
@@ -28,9 +28,9 @@ public class Menu extends BasicGameState {
 
     @Override
     public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
-        mPlay = new MenuItem("Jouer !",gc.getWidth()/2-100,40,200,50);
-        mHigh = new MenuItem("Meilleurs scores",gc.getWidth()/2-100,100,200,50);
-        mQuit = new MenuItem("Quitter",gc.getWidth()/2-100,160,200,50);
+        mPlay = new MenuButton("Jouer !",gc.getWidth()/2-100,40,200,50);
+        mHigh = new MenuButton("Meilleurs scores",gc.getWidth()/2-100,100,200,50);
+        mQuit = new MenuButton("Quitter",gc.getWidth()/2-100,160,200,50);
     }
 
     @Override

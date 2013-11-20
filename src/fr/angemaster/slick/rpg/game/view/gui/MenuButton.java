@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.view.models;
+package fr.angemaster.slick.rpg.game.view.gui;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -6,16 +6,14 @@ import org.newdawn.slick.Graphics;
 
 import java.util.logging.Logger;
 
-public class MenuItem {
-    private final static Logger LOG = Logger.getLogger(MenuItem.class.getName());
+public class MenuButton {
+    private final static Logger LOG = Logger.getLogger(MenuButton.class.getName());
 
     private int x;
     private int y;
     private int width;
     private int height;
     private String text;
-
-    private boolean hasBorder;
 
     private int padding;
     private int borderSize;
@@ -28,14 +26,12 @@ public class MenuItem {
     private Color colorBorderHover;
     private Color colorTextHover;
 
-    public MenuItem(String text, int x, int y, int width, int height) {
+    public MenuButton(String text, int x, int y, int width, int height) {
         this.text = text;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-
-        this.hasBorder = true;
 
         this.padding = 10;
         this.borderSize = 5;
