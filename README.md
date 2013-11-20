@@ -17,38 +17,38 @@ This game is more of a technical exercice, so this is the things that I really w
   - Day / night cycle : I've allready added one to the game, but not sure the best way to do it.
   - Big map : the idea is to cut the map in many small map and switch form one to another without loading the entire map since the beginning.
  - *Gameplay* :
-  - Abilities/skills :
-   - Engineering
-   - Cooking
-   - Weapons
-   - Tools
-   - Building
-   - ...
   - Player health, stamina, hunger, thirst ...
   - Possibility to create/join a community
   - Finding resources for community or himself
+  - Abilities and skills :
+    - Engineering
+    - Cooking
+    - Weapons
+    - Tools
+    - Building
+    - ...
   - Player/Community place :
-   - Place built by players
-   - Possibility to add buildings :
-    - Utility :
-     - Garden : give some food each day
-     - Hangar : building to increase place's stock space
-     - Bedroom : add a bed to allow community to host more people
-     - Training camp : place to train your player (increase strength ...)
-     - Library : place to learn some new abilities
-     - ...
-    - Defense :
-     - Walls :
-      - Wood -> can be transform on stone
-      - Stone -> can be transform on metal
-      - Metal
-     - Minefield : inserting a minefield where you want around your place
-     - Auto turret : turret having a certain range and firing bullets to enemies (NPC or Players)
-     - ...
-    - Decorations :
-     - Roads
-     - Flowers
-     - ...
+    - Place built by players
+    - Possibility to add buildings :
+      - Utility :
+        - Garden : give some food each day
+        - Hangar : building to increase place's stock space
+        - Bedroom : add a bed to allow community to host more people
+        - Training camp : place to train your player (increase strength ...)
+        - Library : place to learn some new abilities
+        - ...
+      - Defense :
+        - Walls :
+          - Wood -> can be transform on stone
+          - Stone -> can be transform on metal
+          - Metal
+        - Minefield : inserting a minefield where you want around your place
+        - Auto turret : turret having a certain range and firing bullets to enemies (NPC or Players)
+        - ...
+      - Decorations :
+        - Roads
+        - Flowers
+        - ...
 
 For every building, you'll need some resources to be able to build them.
 Every building will have some kind of health bar, and they can be destroyed.
