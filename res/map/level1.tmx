@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="Terrain" tilewidth="32" tileheight="32">
+  <image source="terrain.png" width="672" height="736"/>
+ </tileset>
+ <layer name="background" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3DAQ0AAAzDoPp3OhcXckhYNVVVVd890cNNERAOAAA=
+  </data>
+ </layer>
+ <layer name="terrain" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+NjYGBIojPmB2I/BvoDn1F7aQZ2MBJvry5QrR4ZWJ8Rj6FE2OsE1O9MBnYZtXfU3lF7R+0dtXfU3mFgbzhQfwQZOJJCe2kFhoq9OwiEH7F6hop/aWkvqWFJTtgPpH+VgdiCzlgFiAEF1bd6EA4AAA==
+  </data>
+ </layer>
+ <objectgroup name="objects" width="30" height="30">
+  <object name="lac" type="water" x="238" y="170" width="454" height="520"/>
+  <object name="videgauche" type="cliff" x="-12" y="-8" width="37" height="963"/>
+  <object name="videhaut" type="cliff" x="0" y="-12" width="959" height="35"/>
+  <object name="videdroit" type="cliff" x="936" y="19" width="28" height="937"/>
+  <object name="videbas" type="cliff" x="8" y="929" width="951" height="27"/>
+  <object name="rock1" type="rock" x="127" y="866" width="37" height="32"/>
+  <object name="rock2" type="rock" x="351" y="767" width="34" height="34"/>
+  <object name="rock3" type="rock" x="511" y="864" width="34" height="34"/>
+  <object name="rock4" type="rock" x="767" y="768" width="34" height="33"/>
+  <object name="rock5" type="rock" x="831" y="128" width="35" height="33"/>
+ </objectgroup>
+</map>
