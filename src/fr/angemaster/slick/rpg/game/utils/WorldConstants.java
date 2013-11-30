@@ -1,6 +1,7 @@
-package fr.angemaster.slick.rpg.game.view.utils;
+package fr.angemaster.slick.rpg.game.utils;
 
 public class WorldConstants {
+    public static boolean DEBUG = true;
     public static int ACCELERATION = 1;
     public final static int DAY_TICK = 120000;
     public final static int NIGHT_TICK = 60000;

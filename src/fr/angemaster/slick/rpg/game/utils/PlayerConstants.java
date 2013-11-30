@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.view.utils;
+package fr.angemaster.slick.rpg.game.utils;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
@@ -31,5 +31,10 @@ public class PlayerConstants {
         public static final int DEXTERITY = 5;
         public static final int INTELLIGENCE = 5;
         public static final float SPEED = .1f;
+    }
+
+    public static class Inventory{
+        public static int SLOTS = GUIConstants.Inventory.COLS * GUIConstants.Inventory.ROWS;
+        public static double MAX_WEIGHT = 50;
     }
 }

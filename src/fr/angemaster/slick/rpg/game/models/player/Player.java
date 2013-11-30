@@ -1,8 +1,8 @@
-package fr.angemaster.slick.rpg.game.view.models;
+package fr.angemaster.slick.rpg.game.models.player;
 
 
-import fr.angemaster.slick.rpg.game.view.utils.PlayerConstants;
-import fr.angemaster.slick.rpg.game.view.utils.WorldConstants;
+import fr.angemaster.slick.rpg.game.utils.PlayerConstants;
+import fr.angemaster.slick.rpg.game.utils.WorldConstants;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
@@ -30,6 +30,7 @@ public class Player {
     private int health;
     private int maxHealth;
     private boolean torchOn;
+    private Inventory inventory;
 
     /**
      * Create a new player
@@ -52,8 +53,13 @@ public class Player {
         this.character = new SpriteSheet("res/characters/player.png",width,height);
         this.buildAnimations();
         this.currentAnimation = idleDown;
-        this.collideShape = new Rectangle(this.x+10,this.y+22,20,10);
+        this.collideShape = new Rectangle(this.x+10,this.y+22,10,10);
+        this.inventory = new Inventory("Inventaire de "+this.name);
         this.initStaticValues();
+    }
+
+    public Inventory getInventory(){
+        return this.inventory;
     }
 
     /**
@@ -94,8 +100,24 @@ public class Player {
      */
     public void render(Graphics g){
         g.drawAnimation(currentAnimation, x, y);
+    }
+
+    /**
+     * Render player info on the given graphics
+     * @param g current graphics
+     */
+    public void renderInfo(Graphics g){
         renderName(g);
         renderHealth(g);
+    }
+
+    /**
+     * Draw the player hitbox
+     * @param g current graphics
+     */
+    public void drawHitbox(Graphics g){
+        g.setColor(Color.red);
+        g.drawRect(this.getCollideShape().getX(), this.getCollideShape().getY(), this.getCollideShape().getWidth(), this.getCollideShape().getHeight());
     }
 
     /**

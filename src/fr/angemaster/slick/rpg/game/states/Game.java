@@ -1,28 +1,29 @@
 package fr.angemaster.slick.rpg.game.states;
 
 import fr.angemaster.slick.rpg.game.RPG;
-import fr.angemaster.slick.rpg.game.view.models.Player;
-import fr.angemaster.slick.rpg.game.view.utils.ConfigConstants;
-import fr.angemaster.slick.rpg.game.view.utils.WorldConstants;
+import fr.angemaster.slick.rpg.game.exception.GameException;
+import fr.angemaster.slick.rpg.game.models.ActionObject;
+import fr.angemaster.slick.rpg.game.models.player.Item;
+import fr.angemaster.slick.rpg.game.models.player.Player;
+import fr.angemaster.slick.rpg.game.models.WorldMap;
+import fr.angemaster.slick.rpg.game.utils.ConfigConstants;
+import fr.angemaster.slick.rpg.game.utils.WorldConstants;
 import org.newdawn.slick.*;
-import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.tiled.TiledMap;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Game extends BasicGameState{
     private final static Logger LOG = Logger.getLogger(Game.class.getName());
     private int id;
 
-    private Map<String,Rectangle> mapObjects;
     private Player player;
-    private TiledMap map;
+    private WorldMap map;
     private float startX = 100;
-    private float startY = 100;
+    private float startY = 500;
     private int borderTop = 0;
     private int borderBot = 0;
     private int borderLeft = 0;
@@ -34,17 +35,21 @@ public class Game extends BasicGameState{
     private int transitionTick;
     private int nightTick;
     private int dayTick;
+    private boolean inInventory = false;
     private boolean isNight = false;
     private boolean isDay = true;
+    private GameException ex;
+    private List<Item> playerItems;
 
     public Game(int id){
         super();
         this.id = id;
-        this.mapObjects = new HashMap<String, Rectangle>();
         this.dayCycleTransitionAlpha = WorldConstants.TRANSITION_MIN_ALPHA;
         this.dayTick = WorldConstants.DAY_TICK;
         this.transitionTick = WorldConstants.TRANSITION_TICK;
         this.nightTick= WorldConstants.NIGHT_TICK;
+        //ex = new GameException("Votre inventaire est plein.");
+        this.playerItems = new ArrayList<Item>();
     }
 
     @Override
@@ -60,17 +65,36 @@ public class Game extends BasicGameState{
         borderRight = gc.getWidth()-10;
 
         player = new Player("Angemaster",startX,startY);
-        map = new TiledMap("res/map/level1.tmx");
-        loadMapObjects();
+        map = new WorldMap(0,0);
         alphaMap = new ImageBuffer(gc.getWidth(),gc.getHeight()).getImage();
     }
 
     @Override
     public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
-        map.render(0, 0);
-        renderNightLayout(gc,g);
+        map.drawBackground();
+        map.drawBehindPlayer();
         player.render(g);
-        renderTime(gc,g);
+        map.drawFrontOfPlayer();
+        renderNightLayout(gc,g);
+        player.renderInfo(g);
+        if(WorldConstants.DEBUG){
+            map.drawObjectsHitbox(g);
+            player.drawHitbox(g);
+            renderTime(gc,g);
+        }
+
+        ActionObject action = map.getObjectInteract(player.getX(), player.getY(), player.getCollideShape());
+        if(action != null){
+            action.drawAction(g);
+        }
+
+        if(inInventory){
+            player.getInventory().render(g);
+        }
+
+        if(ex != null){
+            ex.render(g);
+        }
     }
 
     @Override
@@ -97,7 +121,7 @@ public class Game extends BasicGameState{
         float newPlayerPosY = moveup ? playerPosY - movForTest : movedown ? playerPosY + movForTest : playerPosY;
         float newPlayerPosX = moveleft ? playerPosX - movForTest : moveright ? playerPosX + movForTest : playerPosX;
 
-        boolean cango = canGo(newPlayerPosX,newPlayerPosY);
+        boolean cango = map.isFreeSpace(newPlayerPosX,newPlayerPosY, player.getCollideShape());
 
         if(moveup && playerPosY > borderTop && cango)
             player.moveUp(mov);
@@ -126,9 +150,27 @@ public class Game extends BasicGameState{
         if(ip.isKeyPressed(ConfigConstants.Keyboard.MENU))
             sbg.enterState(RPG.STATE_MENU);
 
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.INVENTORY)){
+            inInventory = !inInventory;
+        }
+
         if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_LESS)){
             if(WorldConstants.ACCELERATION > 1)
                 WorldConstants.ACCELERATION -= 1;
+        }
+
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.SWITCH_DEBUG)){
+            WorldConstants.DEBUG = !WorldConstants.DEBUG;
+        }
+
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.ADD_ITEM)){
+            this.addItem();
+        }
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.REM_ITEM)){
+            this.removeItem();
+        }
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.CLEAR_INVENTORY)){
+            this.resetInventory();
         }
 
         if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_PLUS)){
@@ -184,39 +226,6 @@ public class Game extends BasicGameState{
     }
 
     /**
-     * Load all objects contained on map and store a Rectangle corresponding to it.
-     */
-    private void loadMapObjects(){
-        int groupId = 0;
-        int objectsCount = map.getObjectCount(groupId);
-
-        for(int i = 0; i < objectsCount; i++){
-            String name = map.getObjectName(groupId,i);
-            int x = map.getObjectX(groupId, i);
-            int y = map.getObjectY(groupId, i);
-            int w = map.getObjectWidth(groupId, i);
-            int h = map.getObjectHeight(groupId,i);
-
-            mapObjects.put(name, new Rectangle(x,y,w,h));
-        }
-    }
-
-    /**
-     * Check if the player can go to a given location
-     * @param newX the new x position of the player
-     * @param newY the new y position of the player
-     * @return true if no obstacle, false otherwise.
-     */
-    private boolean canGo(float newX, float newY){
-        Rectangle r = new Rectangle(newX+10,newY+22,player.getCollideShape().getWidth(),player.getCollideShape().getHeight());
-        for(Rectangle obj: mapObjects.values()){
-            if(obj.intersects(r))
-                return false;
-        }
-        return true;
-    }
-
-    /**
      * Render a String on top of screen displaying time informations such as acceleration, day tick, night tick, transition tick, alpha value
      * @param gc the game container
      * @param g the graphics
@@ -267,5 +276,69 @@ public class Game extends BasicGameState{
         }
 
         g.drawImage(alphaMap,0,0);
+    }
+
+
+    public void addItem(){
+        String[] names = {
+                "Test",
+                "Epée",
+                "Potion de vie",
+                "Bouclier",
+                "Guitare",
+                "Eau",
+                "Chips",
+                "Poulet",
+                "Flèches",
+                "Arc",
+                "Bidon",
+                "Cuillère",
+                "Bol"
+        };
+
+        double[] weight = {
+                0.2,
+                3.5,
+                0.1,
+                4.8,
+                2.2,
+                0.5,
+                0.2,
+                0.8,
+                0.02,
+                6.3,
+                1.5,
+                0.1,
+                0.2
+        };
+
+        int random = (int)Math.round(Math.random()*(names.length-1));
+        Item i = new Item(names[random], weight[random]);
+        try {
+            this.player.getInventory().addItem(i);
+            this.playerItems.add(i);
+            System.out.println("Random = " + random + "\nAdding item "+i.getName()+" ("+i.getWeight()+" kg)");
+        } catch (GameException e) {
+            this.ex = e;
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void resetInventory(){
+        this.playerItems = new ArrayList<Item>();
+        this.player.getInventory().reset();
+    }
+
+    public void removeItem(){
+        if(this.playerItems.size() > 0){
+            int random = (int)Math.round(Math.random()*(this.playerItems.size()-1));
+            Item i = this.playerItems.get(random);
+            try {
+                this.player.getInventory().removeItem(i);
+                this.playerItems.remove(i);
+            } catch (GameException e) {
+                this.ex = e;
+            }
+        }
     }
 }

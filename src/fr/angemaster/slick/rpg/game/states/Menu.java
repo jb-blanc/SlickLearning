@@ -1,7 +1,7 @@
 package fr.angemaster.slick.rpg.game.states;
 
 import fr.angemaster.slick.rpg.game.RPG;
-import fr.angemaster.slick.rpg.game.view.gui.MenuButton;
+import fr.angemaster.slick.rpg.game.gui.MenuButton;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;

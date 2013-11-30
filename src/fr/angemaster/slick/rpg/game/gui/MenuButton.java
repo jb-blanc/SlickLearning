@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.view.gui;
+package fr.angemaster.slick.rpg.game.gui;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;

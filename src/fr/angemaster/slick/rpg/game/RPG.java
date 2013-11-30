@@ -2,6 +2,7 @@ package fr.angemaster.slick.rpg.game;
 
 import fr.angemaster.slick.rpg.game.states.*;
 import fr.angemaster.slick.rpg.game.states.Game;
+import fr.angemaster.slick.rpg.game.utils.GUIConstants;
 import net.java.games.input.Controller;
 import net.java.games.input.ControllerEnvironment;
 import org.lwjgl.LWJGLUtil;
@@ -37,7 +38,7 @@ public class RPG extends StateBasedGame{
         RPG rpg = new RPG("RPG !");
         try {
             AppGameContainer container = new AppGameContainer(rpg);
-            container.setDisplayMode(960,960,false);
+            container.setDisplayMode(GUIConstants.WIDTH,GUIConstants.HEIGHT,false);
             container.setShowFPS(true);
             container.start();
 
