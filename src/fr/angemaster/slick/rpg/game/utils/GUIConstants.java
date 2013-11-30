@@ -16,6 +16,7 @@ public class GUIConstants {
         public final static int HINT_DURATION = 3000;
         public final static int PADDING = 20;
         public final static int TOP = 100;
+        public final static int RADIUS = 20;
     }
 
     public static class Inventory {

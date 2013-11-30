@@ -20,11 +20,12 @@ public class GameException extends Exception{
             float worldWidth = GUIConstants.WIDTH;
 
             g.setColor(GUIConstants.Exceptions.BACKGROUND);
-            g.fillRect(
+            g.fillRoundRect(
                     (worldWidth/2) - (w/2) - GUIConstants.Exceptions.PADDING,
                     GUIConstants.Exceptions.TOP,
                     w+(2*GUIConstants.Exceptions.PADDING),
-                    h+(2*GUIConstants.Exceptions.PADDING)
+                    h+(2*GUIConstants.Exceptions.PADDING),
+                    GUIConstants.Exceptions.RADIUS
             );
             g.setColor(GUIConstants.Exceptions.FONT_COLOR);
             g.drawString(this.getMessage(), (worldWidth/2) - (w/2), GUIConstants.Exceptions.TOP+GUIConstants.Exceptions.PADDING);
