@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.utils;
+package fr.angemaster.slick.rpg.game.constants;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;

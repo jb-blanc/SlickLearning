@@ -2,7 +2,7 @@ package fr.angemaster.slick.rpg.game;
 
 import fr.angemaster.slick.rpg.game.states.*;
 import fr.angemaster.slick.rpg.game.states.Game;
-import fr.angemaster.slick.rpg.game.utils.GUIConstants;
+import fr.angemaster.slick.rpg.game.constants.GUIConstants;
 import net.java.games.input.Controller;
 import net.java.games.input.ControllerEnvironment;
 import org.lwjgl.LWJGLUtil;

@@ -1,8 +1,8 @@
 package fr.angemaster.slick.rpg.game.models.player;
 
 import fr.angemaster.slick.rpg.game.exception.GameException;
-import fr.angemaster.slick.rpg.game.utils.GUIConstants;
-import fr.angemaster.slick.rpg.game.utils.PlayerConstants;
+import fr.angemaster.slick.rpg.game.constants.GUIConstants;
+import fr.angemaster.slick.rpg.game.constants.PlayerConstants;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 

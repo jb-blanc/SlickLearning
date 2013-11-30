@@ -3,11 +3,12 @@ package fr.angemaster.slick.rpg.game.states;
 import fr.angemaster.slick.rpg.game.RPG;
 import fr.angemaster.slick.rpg.game.exception.GameException;
 import fr.angemaster.slick.rpg.game.models.ActionObject;
+import fr.angemaster.slick.rpg.game.models.PickableObject;
 import fr.angemaster.slick.rpg.game.models.player.Item;
 import fr.angemaster.slick.rpg.game.models.player.Player;
 import fr.angemaster.slick.rpg.game.models.WorldMap;
-import fr.angemaster.slick.rpg.game.utils.ConfigConstants;
-import fr.angemaster.slick.rpg.game.utils.WorldConstants;
+import fr.angemaster.slick.rpg.game.constants.ConfigConstants;
+import fr.angemaster.slick.rpg.game.constants.WorldConstants;
 import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -40,6 +41,7 @@ public class Game extends BasicGameState{
     private boolean isDay = true;
     private GameException ex;
     private List<Item> playerItems;
+    private ActionObject currentActionObject;
 
     public Game(int id){
         super();
@@ -71,10 +73,10 @@ public class Game extends BasicGameState{
 
     @Override
     public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
-        map.drawBackground();
-        map.drawBehindPlayer();
+        map.drawBackground(g);
+        map.drawBehindPlayer(g);
         player.render(g);
-        map.drawFrontOfPlayer();
+        map.drawFrontOfPlayer(g);
         renderNightLayout(gc,g);
         player.renderInfo(g);
         if(WorldConstants.DEBUG){
@@ -83,9 +85,9 @@ public class Game extends BasicGameState{
             renderTime(gc,g);
         }
 
-        ActionObject action = map.getObjectInteract(player.getX(), player.getY(), player.getCollideShape());
-        if(action != null){
-            action.drawAction(g);
+        currentActionObject = map.getObjectInteract(player.getX(), player.getY(), player.getCollideShape());
+        if(currentActionObject != null){
+            currentActionObject.drawAction(g);
         }
 
         if(inInventory){
@@ -123,6 +125,7 @@ public class Game extends BasicGameState{
 
         boolean cango = map.isFreeSpace(newPlayerPosX,newPlayerPosY, player.getCollideShape());
 
+        /* MOVEMENT */
         if(moveup && playerPosY > borderTop && cango)
             player.moveUp(mov);
         else if(movedown && playerPosY < borderBot-playerH && cango)
@@ -134,49 +137,65 @@ public class Game extends BasicGameState{
         else if(hasStop)
             player.playerStop();
 
-        if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_HEALTH))
-            player.addHealth(1);
-        if(ip.isKeyDown(ConfigConstants.Keyboard.REM_HEALTH))
-            player.removeHealth(1);
-
+        /* PLAYER UTILITY */
         if(ip.isKeyPressed(ConfigConstants.Keyboard.SWITCH_TORCH))
             player.switchTorch();
-
-        if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_MAX_HEALTH))
-            player.addMaxHealth(1);
-        if(ip.isKeyDown(ConfigConstants.Keyboard.REM_MAX_HEALTH))
-            player.removeMaxHealth(1);
-
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.MENU))
-            sbg.enterState(RPG.STATE_MENU);
-
         if(ip.isKeyPressed(ConfigConstants.Keyboard.INVENTORY)){
             inInventory = !inInventory;
         }
-
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_LESS)){
-            if(WorldConstants.ACCELERATION > 1)
-                WorldConstants.ACCELERATION -= 1;
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.ACTION)){
+            if(currentActionObject != null){
+                try {
+                    currentActionObject.doAction(this.player);
+                } catch (GameException e) {
+                    this.ex = e;
+                }
+            }
         }
 
+        /* GAME COMMAND*/
+        if(ip.isKeyPressed(ConfigConstants.Keyboard.MENU))
+            sbg.enterState(RPG.STATE_MENU);
+
+
+        /* DEBUG MODE */
         if(ip.isKeyPressed(ConfigConstants.Keyboard.SWITCH_DEBUG)){
             WorldConstants.DEBUG = !WorldConstants.DEBUG;
         }
+        if(WorldConstants.DEBUG){
+            if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_HEALTH))
+                player.addHealth(1);
+            if(ip.isKeyDown(ConfigConstants.Keyboard.REM_HEALTH))
+                player.removeHealth(1);
+            if(ip.isKeyDown(ConfigConstants.Keyboard.ADD_MAX_HEALTH))
+                player.addMaxHealth(1);
+            if(ip.isKeyDown(ConfigConstants.Keyboard.REM_MAX_HEALTH))
+                player.removeMaxHealth(1);
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.ADD_ITEM)){
+                this.addItem();
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.REM_ITEM)){
+                this.removeItem();
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.CLEAR_INVENTORY)){
+                this.resetInventory();
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.SPAWN_ITEM)){
+                this.spawnRandomItem();
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.CLEAR_MAP)){
+                this.map.clearAllGroundObjects();
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_PLUS)){
+                if(WorldConstants.ACCELERATION < 1000)
+                    WorldConstants.ACCELERATION += 1;
+            }
+            if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_LESS)){
+                if(WorldConstants.ACCELERATION > 1)
+                    WorldConstants.ACCELERATION -= 1;
+            }
+        }
 
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.ADD_ITEM)){
-            this.addItem();
-        }
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.REM_ITEM)){
-            this.removeItem();
-        }
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.CLEAR_INVENTORY)){
-            this.resetInventory();
-        }
-
-        if(ip.isKeyPressed(ConfigConstants.Keyboard.ACCELERATION_PLUS)){
-            if(WorldConstants.ACCELERATION < 1000)
-                WorldConstants.ACCELERATION += 1;
-        }
 
         player.update(i);
     }
@@ -278,46 +297,50 @@ public class Game extends BasicGameState{
         g.drawImage(alphaMap,0,0);
     }
 
+    public void spawnRandomItem(){
+        String[] names = {
+                "arrow_01",
+                "flute_01",
+                "mace_01",
+                "potion_01",
+                "potion_02",
+                "ring_01",
+                "shield_01",
+                "shield_02",
+                "sword_01",
+                "wand_01"
+        };
+        int random = (int)Math.round(Math.random()*(names.length-1));
+        try {
+            Item i = Item.createItem(names[random]);
+            PickableObject o = new PickableObject(i,player.getX(),player.getY());
+            this.map.addGroundObject(o);
+        } catch (SlickException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addItem(){
         String[] names = {
-                "Test",
-                "Epée",
-                "Potion de vie",
-                "Bouclier",
-                "Guitare",
-                "Eau",
-                "Chips",
-                "Poulet",
-                "Flèches",
-                "Arc",
-                "Bidon",
-                "Cuillère",
-                "Bol"
+                "arrow_01",
+                "flute_01",
+                "mace_01",
+                "potion_01",
+                "potion_02",
+                "ring_01",
+                "shield_01",
+                "shield_02",
+                "sword_01",
+                "wand_01"
         };
-
-        double[] weight = {
-                0.2,
-                3.5,
-                0.1,
-                4.8,
-                2.2,
-                0.5,
-                0.2,
-                0.8,
-                0.02,
-                6.3,
-                1.5,
-                0.1,
-                0.2
-        };
-
         int random = (int)Math.round(Math.random()*(names.length-1));
-        Item i = new Item(names[random], weight[random]);
         try {
+            Item i = Item.createItem(names[random]);
             this.player.getInventory().addItem(i);
             this.playerItems.add(i);
-            System.out.println("Random = " + random + "\nAdding item "+i.getName()+" ("+i.getWeight()+" kg)");
+            System.out.println("Random = " + random + "\nAdding item " + i.getName() + " (" + i.getWeight() + " kg)");
+        } catch (SlickException e) {
+            e.printStackTrace();
         } catch (GameException e) {
             this.ex = e;
             System.out.println(e.getMessage());

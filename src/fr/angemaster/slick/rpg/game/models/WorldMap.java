@@ -22,14 +22,14 @@ public class WorldMap {
     private int zoneGroup;
     private TiledMap map;
     private HashMap<String,WorldObject> collisionObjects;
-    private HashMap<String,ActionObject> actionObjects;
+    private List<ActionObject> actionObjects;
 
     public WorldMap(int x, int y) throws SlickException {
         super();
         this.x = x;
         this.y = y;
         this.collisionObjects = new HashMap<String, WorldObject>();
-        this.actionObjects = new HashMap<String, ActionObject>();
+        this.actionObjects = new ArrayList<ActionObject>();
         this.map = new TiledMap("res/map/map_"+x+"_"+y+".tmx");
         this.backgroundLayer = map.getLayerIndex("background");
         this.behindPlayerLayer = map.getLayerIndex("behindof");
@@ -46,15 +46,18 @@ public class WorldMap {
         return this.map;
     }
 
-    public void drawBackground(){
+    public void drawBackground(Graphics g){
         this.map.render(0,0,backgroundLayer);
     }
 
-    public void drawBehindPlayer(){
+    public void drawBehindPlayer(Graphics g){
         this.map.render(0,0,behindPlayerLayer);
+        for(ActionObject o : actionObjects){
+            o.draw(g);
+        }
     }
 
-    public void drawFrontOfPlayer(){
+    public void drawFrontOfPlayer(Graphics g){
         this.map.render(0,0,frontOfPlayerLayer);
     }
 
@@ -63,7 +66,7 @@ public class WorldMap {
         for(WorldObject o : collisionObjects.values()){
             o.drawHitbox(g);
         }
-        for(ActionObject o : actionObjects.values()){
+        for(ActionObject o : actionObjects){
             o.drawHitbox(g);
         }
     }
@@ -81,7 +84,7 @@ public class WorldMap {
             int w = map.getObjectWidth(collisionGroup, i);
             int h = map.getObjectHeight(collisionGroup,i);
 
-            collisionObjects.put(name, new WorldObject(x, y, w, h, 0));
+            collisionObjects.put(name, new WorldObject(x, y, w, h));
         }
     }
 
@@ -89,15 +92,24 @@ public class WorldMap {
         int objectsCount = map.getObjectCount(actionGroup);
 
         for(int i = 0; i < objectsCount; i++){
-            String name = map.getObjectName(actionGroup,i);
             int x = map.getObjectX(actionGroup, i);
             int y = map.getObjectY(actionGroup, i);
             int w = map.getObjectWidth(actionGroup, i);
             int h = map.getObjectHeight(actionGroup,i);
 
-            System.out.println("ActionObject : "+name);
+            actionObjects.add(new ActionObject(x, y, w, h));
+        }
+    }
 
-            actionObjects.put(name, new ActionObject(x, y, w, h));
+    public void addGroundObject(PickableObject object){
+        if(!this.actionObjects.contains(object)){
+            this.actionObjects.add(object);
+        }
+    }
+
+    public void removeGroundObject(PickableObject object){
+        if(this.actionObjects.contains(object)){
+            this.actionObjects.remove(object);
         }
     }
 
@@ -122,7 +134,7 @@ public class WorldMap {
     public List<ActionObject> getObjectsInteract(float newX, float newY, Shape collisionShape){
         List<ActionObject> list = new ArrayList<ActionObject>();
         Rectangle r = new Rectangle(newX+10,newY+22,collisionShape.getWidth(),collisionShape.getHeight());
-        for(ActionObject obj: actionObjects.values()){
+        for(ActionObject obj: actionObjects){
             if(obj.getHitbox().intersects(r)){
                 list.add(obj);
             }
@@ -132,11 +144,21 @@ public class WorldMap {
 
     public ActionObject getObjectInteract(float newX, float newY, Shape collisionShape){
         Rectangle r = new Rectangle(newX+10,newY+22,collisionShape.getWidth(),collisionShape.getHeight());
-        for(ActionObject obj: actionObjects.values()){
-            if(obj.getHitbox().intersects(r)){
+        for(ActionObject obj: actionObjects){
+            if(obj.isAvailable() && obj.getHitbox().intersects(r)){
                 return obj;
             }
         }
         return null;
+    }
+
+    public void clearAllGroundObjects(){
+        ArrayList<ActionObject> toRemove = new ArrayList<ActionObject>();
+        for(ActionObject obj : actionObjects){
+            if(obj instanceof PickableObject){
+                toRemove.add(obj);
+            }
+        }
+        actionObjects.removeAll(toRemove);
     }
 }

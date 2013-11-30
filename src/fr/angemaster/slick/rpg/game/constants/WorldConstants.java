@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.utils;
+package fr.angemaster.slick.rpg.game.constants;
 
 public class WorldConstants {
     public static boolean DEBUG = true;

@@ -1,6 +1,6 @@
 package fr.angemaster.slick.rpg.game.exception;
 
-import fr.angemaster.slick.rpg.game.utils.GUIConstants;
+import fr.angemaster.slick.rpg.game.constants.GUIConstants;
 import org.newdawn.slick.Graphics;
 
 public class GameException extends Exception{
@@ -21,10 +21,10 @@ public class GameException extends Exception{
 
             g.setColor(GUIConstants.Exceptions.BACKGROUND);
             g.fillRoundRect(
-                    (worldWidth/2) - (w/2) - GUIConstants.Exceptions.PADDING,
+                    (worldWidth / 2) - (w / 2) - GUIConstants.Exceptions.PADDING,
                     GUIConstants.Exceptions.TOP,
-                    w+(2*GUIConstants.Exceptions.PADDING),
-                    h+(2*GUIConstants.Exceptions.PADDING),
+                    w + (2 * GUIConstants.Exceptions.PADDING),
+                    h + (2 * GUIConstants.Exceptions.PADDING),
                     GUIConstants.Exceptions.RADIUS
             );
             g.setColor(GUIConstants.Exceptions.FONT_COLOR);

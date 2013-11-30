@@ -1,8 +1,8 @@
 package fr.angemaster.slick.rpg.game.models.player;
 
 
-import fr.angemaster.slick.rpg.game.utils.PlayerConstants;
-import fr.angemaster.slick.rpg.game.utils.WorldConstants;
+import fr.angemaster.slick.rpg.game.constants.PlayerConstants;
+import fr.angemaster.slick.rpg.game.constants.WorldConstants;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
@@ -50,12 +50,16 @@ public class Player {
         this.width = 32;
         this.height = 32;
         this.torchOn = false;
-        this.character = new SpriteSheet("res/characters/player.png",width,height);
+        this.character = new SpriteSheet("res/images/characters/player.png",width,height);
         this.buildAnimations();
         this.currentAnimation = idleDown;
         this.collideShape = new Rectangle(this.x+10,this.y+22,10,10);
         this.inventory = new Inventory("Inventaire de "+this.name);
         this.initStaticValues();
+    }
+
+    public String getName(){
+        return this.name;
     }
 
     public Inventory getInventory(){

@@ -1,4 +1,4 @@
-package fr.angemaster.slick.rpg.game.utils;
+package fr.angemaster.slick.rpg.game.constants;
 
 
 import org.newdawn.slick.Input;
@@ -30,6 +30,8 @@ public class ConfigConstants {
         public static int REM_MAX_HEALTH = Input.KEY_L;
         public static int ACCELERATION_PLUS = Input.KEY_ADD;
         public static int ACCELERATION_LESS = Input.KEY_SUBTRACT;
+        public static int SPAWN_ITEM = Input.KEY_F9;
+        public static int CLEAR_MAP = Input.KEY_F10;
     }
 
 }
