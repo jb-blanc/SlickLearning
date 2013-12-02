@@ -6,6 +6,11 @@ import fr.angemaster.slick.rpg.game.constants.WorldConstants;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
+import org.newdawn.slick.util.ResourceLoader;
+
+import java.io.IOException;
 
 public class Player {
     private float nameX;
@@ -31,6 +36,7 @@ public class Player {
     private int maxHealth;
     private boolean torchOn;
     private Inventory inventory;
+    private Audio audioStep;
 
     /**
      * Create a new player
@@ -39,7 +45,7 @@ public class Player {
      * @param y the starting y coordinate
      * @throws SlickException
      */
-    public Player(String name, float x, float y) throws SlickException {
+    public Player(String name, float x, float y) throws SlickException, IOException {
         super();
         this.name = name;
         this.x = x;
@@ -55,6 +61,7 @@ public class Player {
         this.currentAnimation = idleDown;
         this.collideShape = new Rectangle(this.x+10,this.y+22,10,10);
         this.inventory = new Inventory("Inventaire de "+this.name);
+        audioStep = AudioLoader.getAudio("OGG", ResourceLoader.getResourceAsStream("res/audio/sfx/step.ogg"));
         this.initStaticValues();
     }
 
@@ -296,6 +303,7 @@ public class Player {
     private void stopAnimation(){
         if(currentAnimation != null){
             currentAnimation.stop();
+            audioStep.stop();
         }
     }
 
@@ -315,7 +323,8 @@ public class Player {
     public void moveLeft(float inc){
         if(!walkLeft.equals(currentAnimation)){
             stopAnimation();
-           currentAnimation = walkLeft;
+            currentAnimation = walkLeft;
+            audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
         this.x -= inc * WorldConstants.ACCELERATION;
@@ -330,6 +339,7 @@ public class Player {
         if(!walkRight.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkRight;
+            audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
         this.x += inc * WorldConstants.ACCELERATION;
@@ -344,6 +354,7 @@ public class Player {
         if(!walkUp.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkUp;
+            audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
         this.y -= inc * WorldConstants.ACCELERATION;
@@ -358,6 +369,7 @@ public class Player {
         if(!walkDown.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkDown;
+            audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
         this.y += inc * WorldConstants.ACCELERATION;
