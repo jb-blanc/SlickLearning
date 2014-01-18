@@ -4,6 +4,7 @@ import fr.angemaster.slick.rpg.game.RPG;
 import fr.angemaster.slick.rpg.game.exception.GameException;
 import fr.angemaster.slick.rpg.game.models.ActionObject;
 import fr.angemaster.slick.rpg.game.models.PickableObject;
+import fr.angemaster.slick.rpg.game.models.npc.NPC;
 import fr.angemaster.slick.rpg.game.models.player.Item;
 import fr.angemaster.slick.rpg.game.models.player.Player;
 import fr.angemaster.slick.rpg.game.models.WorldMap;
@@ -13,11 +14,10 @@ import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 import java.util.logging.Logger;
 
-public class Game extends BasicGameState{
+public class Game extends BasicGameState {
     private final static Logger LOG = Logger.getLogger(Game.class.getName());
     private int id;
 
@@ -40,8 +40,8 @@ public class Game extends BasicGameState{
     private boolean isNight = false;
     private boolean isDay = true;
     private GameException ex;
-    private List<Item> playerItems;
     private ActionObject currentActionObject;
+    private NPC npc;
 
     public Game(int id){
         super();
@@ -50,8 +50,6 @@ public class Game extends BasicGameState{
         this.dayTick = WorldConstants.DAY_TICK;
         this.transitionTick = WorldConstants.TRANSITION_TICK;
         this.nightTick= WorldConstants.NIGHT_TICK;
-        //ex = new GameException("Votre inventaire est plein.");
-        this.playerItems = new ArrayList<Item>();
     }
 
     @Override
@@ -66,26 +64,34 @@ public class Game extends BasicGameState{
         borderLeft = 10;
         borderRight = gc.getWidth()-10;
 
-        player = new Player("Angemaster",startX,startY);
+        try {
+            player = new Player("Angemaster",startX,startY);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         map = new WorldMap(0,0);
         alphaMap = new ImageBuffer(gc.getWidth(),gc.getHeight()).getImage();
+        this.npc = new NPC("Monster",400,200);
     }
 
     @Override
     public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
         map.drawBackground(g);
         map.drawBehindPlayer(g);
+        npc.render(g);
         player.render(g);
         map.drawFrontOfPlayer(g);
         renderNightLayout(gc,g);
         player.renderInfo(g);
         if(WorldConstants.DEBUG){
             map.drawObjectsHitbox(g);
+            npc.drawHitbox(g);
+            npc.renderDetection(g);
             player.drawHitbox(g);
             renderTime(gc,g);
         }
 
-        currentActionObject = map.getObjectInteract(player.getX(), player.getY(), player.getCollideShape());
+        currentActionObject = map.getObjectInteract(player.getX(), player.getY(), player.getCollisionShape());
         if(currentActionObject != null){
             currentActionObject.drawAction(g);
         }
@@ -123,7 +129,7 @@ public class Game extends BasicGameState{
         float newPlayerPosY = moveup ? playerPosY - movForTest : movedown ? playerPosY + movForTest : playerPosY;
         float newPlayerPosX = moveleft ? playerPosX - movForTest : moveright ? playerPosX + movForTest : playerPosX;
 
-        boolean cango = map.isFreeSpace(newPlayerPosX,newPlayerPosY, player.getCollideShape());
+        boolean cango = map.isFreeSpace(newPlayerPosX,newPlayerPosY, player.getCollisionShape());
 
         /* MOVEMENT */
         if(moveup && playerPosY > borderTop && cango)
@@ -152,6 +158,10 @@ public class Game extends BasicGameState{
                 }
             }
         }
+        //Si le joueur est dans l'inventaire on écoute les clics
+        if(inInventory && ip.isMousePressed(Input.MOUSE_LEFT_BUTTON)){
+            player.getInventory().getItemAt(gc.getGraphics(), ip.getMouseX(), ip.getMouseY());
+        }
 
         /* GAME COMMAND*/
         if(ip.isKeyPressed(ConfigConstants.Keyboard.MENU))
@@ -171,12 +181,6 @@ public class Game extends BasicGameState{
                 player.addMaxHealth(1);
             if(ip.isKeyDown(ConfigConstants.Keyboard.REM_MAX_HEALTH))
                 player.removeMaxHealth(1);
-            if(ip.isKeyPressed(ConfigConstants.Keyboard.ADD_ITEM)){
-                this.addItem();
-            }
-            if(ip.isKeyPressed(ConfigConstants.Keyboard.REM_ITEM)){
-                this.removeItem();
-            }
             if(ip.isKeyPressed(ConfigConstants.Keyboard.CLEAR_INVENTORY)){
                 this.resetInventory();
             }
@@ -254,7 +258,7 @@ public class Game extends BasicGameState{
         g.setColor(Color.green);
         int strWidth = g.getFont().getWidth(strSpeed);
         int width = gc.getWidth();
-        g.drawString(strSpeed, (width/2)-(strWidth/2), 0);
+        g.drawString(strSpeed, (width / 2) - (strWidth / 2), 0);
     }
 
     /**
@@ -320,48 +324,8 @@ public class Game extends BasicGameState{
         }
     }
 
-    public void addItem(){
-        String[] names = {
-                "arrow_01",
-                "flute_01",
-                "mace_01",
-                "potion_01",
-                "potion_02",
-                "ring_01",
-                "shield_01",
-                "shield_02",
-                "sword_01",
-                "wand_01"
-        };
-        int random = (int)Math.round(Math.random()*(names.length-1));
-        try {
-            Item i = Item.createItem(names[random]);
-            this.player.getInventory().addItem(i);
-            this.playerItems.add(i);
-            System.out.println("Random = " + random + "\nAdding item " + i.getName() + " (" + i.getWeight() + " kg)");
-        } catch (SlickException e) {
-            e.printStackTrace();
-        } catch (GameException e) {
-            this.ex = e;
-            System.out.println(e.getMessage());
-        }
-    }
-
     public void resetInventory(){
-        this.playerItems = new ArrayList<Item>();
         this.player.getInventory().reset();
     }
 
-    public void removeItem(){
-        if(this.playerItems.size() > 0){
-            int random = (int)Math.round(Math.random()*(this.playerItems.size()-1));
-            Item i = this.playerItems.get(random);
-            try {
-                this.player.getInventory().removeItem(i);
-                this.playerItems.remove(i);
-            } catch (GameException e) {
-                this.ex = e;
-            }
-        }
-    }
 }

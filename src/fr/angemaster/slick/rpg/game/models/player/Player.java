@@ -3,16 +3,18 @@ package fr.angemaster.slick.rpg.game.models.player;
 
 import fr.angemaster.slick.rpg.game.constants.PlayerConstants;
 import fr.angemaster.slick.rpg.game.constants.WorldConstants;
+import fr.angemaster.slick.rpg.game.models.WorldCharacter;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.geom.Shape;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.AudioLoader;
 import org.newdawn.slick.util.ResourceLoader;
 
 import java.io.IOException;
 
-public class Player {
+public class Player implements WorldCharacter {
     private float nameX;
     private float nameY;
     private float healthBarX;
@@ -30,7 +32,9 @@ public class Player {
     private int width;
     private int height;
     private float speed;
-    private Rectangle collideShape;
+    private Rectangle collisionShape;
+    private Rectangle hitbox;
+    private Rectangle interactionShape;
     private String name;
     private int health;
     private int maxHealth;
@@ -59,7 +63,9 @@ public class Player {
         this.character = new SpriteSheet("res/images/characters/player.png",width,height);
         this.buildAnimations();
         this.currentAnimation = idleDown;
-        this.collideShape = new Rectangle(this.x+10,this.y+22,10,10);
+        this.collisionShape = new Rectangle(this.x+10,this.y+22,10,10);
+        this.hitbox = new Rectangle(this.x+5,this.y,this.width - 10,this.height);
+        this.interactionShape = new Rectangle(this.x-10,this.y-10,this.width + 20, this.height + 20);
         this.inventory = new Inventory("Inventaire de "+this.name);
         audioStep = AudioLoader.getAudio("OGG", ResourceLoader.getResourceAsStream("res/audio/sfx/step.ogg"));
         this.initStaticValues();
@@ -128,7 +134,11 @@ public class Player {
      */
     public void drawHitbox(Graphics g){
         g.setColor(Color.red);
-        g.drawRect(this.getCollideShape().getX(), this.getCollideShape().getY(), this.getCollideShape().getWidth(), this.getCollideShape().getHeight());
+        g.drawRect(this.getCollisionShape().getX(), this.getCollisionShape().getY(), this.getCollisionShape().getWidth(), this.getCollisionShape().getHeight());
+        g.setColor(Color.green);
+        g.drawRect(this.getHitbox().getX(), this.getHitbox().getY(), this.getHitbox().getWidth(), this.getHitbox().getHeight());
+        g.setColor(Color.blue);
+        g.drawRect(this.getInteractionShape().getX(), this.getInteractionShape().getY(), this.getInteractionShape().getWidth(), this.getInteractionShape().getHeight());
     }
 
     /**
@@ -196,8 +206,8 @@ public class Player {
      * Get the collision shape of the player
      * @return
      */
-    public Rectangle getCollideShape(){
-        return this.collideShape;
+    public Rectangle getCollisionShape(){
+        return this.collisionShape;
     }
 
     /**
@@ -327,8 +337,7 @@ public class Player {
             audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
-        this.x -= inc * WorldConstants.ACCELERATION;
-        this.collideShape.setX(this.x+10);
+        this.removeX(inc);
     }
 
     /**
@@ -342,8 +351,7 @@ public class Player {
             audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
-        this.x += inc * WorldConstants.ACCELERATION;
-        this.collideShape.setX(this.x+10);
+        this.addX(inc);
     }
 
     /**
@@ -357,8 +365,7 @@ public class Player {
             audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
-        this.y -= inc * WorldConstants.ACCELERATION;
-        this.collideShape.setY(this.y+22);
+        this.removeY(inc);
     }
 
     /**
@@ -372,8 +379,7 @@ public class Player {
             audioStep.playAsSoundEffect(1.0f,.5f,true);
             startAnimation();
         }
-        this.y += inc * WorldConstants.ACCELERATION;
-        this.collideShape.setY(this.y+22);
+        this.addY(inc);
     }
 
     /**
@@ -423,4 +429,39 @@ public class Player {
         idleRight = new Animation(this.character,1,3,1,3,false,1000,false);
     }
 
+
+    private void addX(float inc){
+        this.x += inc * WorldConstants.ACCELERATION;
+        this.collisionShape.setX(this.x + 10);
+        this.hitbox.setX(this.x + 5);
+        this.interactionShape.setX(this.x - 10);
+    }
+    private void removeX(float inc){
+        this.x -= inc * WorldConstants.ACCELERATION;
+        this.collisionShape.setX(this.x + 10);
+        this.hitbox.setX(this.x + 5);
+        this.interactionShape.setX(this.x - 10);
+    }
+    private void addY(float inc){
+        this.y += inc * WorldConstants.ACCELERATION;
+        this.collisionShape.setY(this.y + 22);
+        this.hitbox.setY(this.y);
+        this.interactionShape.setY(this.y - 10);
+    }
+    private void removeY(float inc){
+        this.y -= inc * WorldConstants.ACCELERATION;
+        this.collisionShape.setY(this.y + 22);
+        this.hitbox.setY(this.y);
+        this.interactionShape.setY(this.y - 10);
+    }
+
+    @Override
+    public Shape getHitbox() {
+        return this.hitbox;
+    }
+
+    @Override
+    public Shape getInteractionShape() {
+        return this.interactionShape;
+    }
 }

@@ -1,5 +1,6 @@
 package fr.angemaster.slick.rpg.game.models.player;
 
+import fr.angemaster.slick.rpg.game.constants.WorldConstants;
 import fr.angemaster.slick.rpg.game.exception.GameException;
 import fr.angemaster.slick.rpg.game.constants.GUIConstants;
 import fr.angemaster.slick.rpg.game.constants.PlayerConstants;
@@ -174,11 +175,104 @@ public class Inventory {
                 cur_col += 1;
             }
         }
+
+        if(WorldConstants.DEBUG){
+            this.debugDrawItems(g);
+        }
+    }
+
+    public Item getItemAt(Graphics g, int mouseX, int mouseY){
+        Item itemFound = null;
+        float titleStrHeight = g.getFont().getHeight(this.title);
+        float titleStrWidth = g.getFont().getWidth(this.title);
+        float titleHeight = titleStrHeight + (2 * GUIConstants.Inventory.TITLE_SPACING);
+        float oneItemWidth = (GUIConstants.Inventory.ITEM_WIDTH + GUIConstants.Inventory.COL_SPACING);
+        float oneItemHeight = (GUIConstants.Inventory.ITEM_HEIGHT + GUIConstants.Inventory.ROW_SPACING);
+        float inventoryWidth = (GUIConstants.Inventory.COLS * oneItemWidth) - GUIConstants.Inventory.COL_SPACING + (GUIConstants.Inventory.PADDING * 2);
+        float rowHeight = GUIConstants.Inventory.ITEM_HEIGHT + GUIConstants.Inventory.ROW_SPACING;
+        float inventoryHeight = (GUIConstants.Inventory.ROWS * rowHeight) - GUIConstants.Inventory.ROW_SPACING + (GUIConstants.Inventory.PADDING * 2);
+        float totalHeight = inventoryHeight+titleHeight;
+
+
+        float x = (GUIConstants.WIDTH/2) - (inventoryWidth/2);
+        float y = (GUIConstants.HEIGHT/2) - (totalHeight/2);
+
+        float xInventory = x;
+        float yInventory = y + titleHeight;
+
+        boolean foundRow = false;
+        boolean foundCol = false;
+        int rowIndex = 0;
+        int colIndex = 0;
+        int itemIndex = 0;
+        for(int row = 0; row < GUIConstants.Inventory.ROWS && !foundRow; row++){
+            for(int col = 0; col < GUIConstants.Inventory.COLS && !foundCol; col++){
+                float xCase = xInventory + (col * oneItemWidth) + GUIConstants.Inventory.PADDING;
+                float yCase = yInventory + (row * oneItemHeight) + GUIConstants.Inventory.PADDING;
+                float x1 = xCase - 3;
+                float y1 = yCase - 3;
+                float width = GUIConstants.Inventory.ITEM_WIDTH + 6;
+                float height = GUIConstants.Inventory.ITEM_HEIGHT + 6;
+
+                if(mouseX > x1 && mouseX < x1 + width && mouseY > y1 && mouseY < y1 + height){
+                    rowIndex = row;
+                    colIndex = col;
+                    foundRow = true;
+                    foundCol = true;
+                    itemIndex = row * GUIConstants.Inventory.COLS + col;
+                }
+            }
+        }
+
+
+        if(foundRow && foundCol){
+            System.out.println();
+
+            int index = 0;
+            for(String key : items.keySet()){
+                if(index == itemIndex){
+                    System.out.println("Item[key="+key+";row=" + rowIndex + ";col=" + colIndex + ";index=" + itemIndex + "]");
+                    itemFound = items.get(key).get(0);
+                }
+                index += 1;
+            }
+        }
+
+        return itemFound;
     }
 
     public void reset() {
         this.weight = 0;
         this.size = 0;
         this.items = new HashMap<String, List<Item>>();
+    }
+
+    public void debugDrawItems(Graphics g){
+        float titleStrHeight = g.getFont().getHeight(this.title);
+        float titleStrWidth = g.getFont().getWidth(this.title);
+        float titleHeight = titleStrHeight + (2 * GUIConstants.Inventory.TITLE_SPACING);
+        float oneItemWidth = (GUIConstants.Inventory.ITEM_WIDTH + GUIConstants.Inventory.COL_SPACING);
+        float oneItemHeight = (GUIConstants.Inventory.ITEM_HEIGHT + GUIConstants.Inventory.ROW_SPACING);
+        float inventoryWidth = (GUIConstants.Inventory.COLS * oneItemWidth) - GUIConstants.Inventory.COL_SPACING + (GUIConstants.Inventory.PADDING * 2);
+        float rowHeight = GUIConstants.Inventory.ITEM_HEIGHT + GUIConstants.Inventory.ROW_SPACING;
+        float inventoryHeight = (GUIConstants.Inventory.ROWS * rowHeight) - GUIConstants.Inventory.ROW_SPACING + (GUIConstants.Inventory.PADDING * 2);
+        float totalHeight = inventoryHeight+titleHeight;
+
+
+        float x = (GUIConstants.WIDTH/2) - (inventoryWidth/2);
+        float y = (GUIConstants.HEIGHT/2) - (totalHeight/2);
+
+        float xInventory = x;
+        float yInventory = y + titleHeight;
+
+        for(int row = 0; row < GUIConstants.Inventory.ROWS; row++){
+            for(int col = 0; col < GUIConstants.Inventory.COLS; col++){
+                float xCase = xInventory + (col * oneItemWidth) + GUIConstants.Inventory.PADDING;
+                float yCase = yInventory + (row * oneItemHeight) + GUIConstants.Inventory.PADDING;
+
+                g.setColor(Color.green);
+                g.drawRect(xCase - 3, yCase - 3, GUIConstants.Inventory.ITEM_WIDTH + 6, GUIConstants.Inventory.ITEM_HEIGHT + 6);
+            }
+        }
     }
 }
