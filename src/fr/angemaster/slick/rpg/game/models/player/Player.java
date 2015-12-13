@@ -39,6 +39,7 @@ public class Player implements WorldCharacter {
     private int health;
     private int maxHealth;
     private boolean torchOn;
+    private boolean moving;
     private Inventory inventory;
     private Audio audioStep;
 
@@ -60,6 +61,7 @@ public class Player implements WorldCharacter {
         this.width = 32;
         this.height = 32;
         this.torchOn = false;
+        this.moving = false;
         this.character = new SpriteSheet("res/images/characters/player.png",width,height);
         this.buildAnimations();
         this.currentAnimation = idleDown;
@@ -91,6 +93,16 @@ public class Player implements WorldCharacter {
      */
     public boolean isTorchOn(){
         return this.torchOn;
+    }
+
+    public boolean isMoving()
+    {
+        return this.moving;
+    }
+
+    public void setMoving(boolean moving)
+    {
+        this.moving = moving;
     }
 
     /**
@@ -313,7 +325,9 @@ public class Player implements WorldCharacter {
     private void stopAnimation(){
         if(currentAnimation != null){
             currentAnimation.stop();
-            audioStep.stop();
+            if(!this.isMoving()) {
+                audioStep.stop();
+            }
         }
     }
 
@@ -334,7 +348,8 @@ public class Player implements WorldCharacter {
         if(!walkLeft.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkLeft;
-            audioStep.playAsSoundEffect(1.0f,.5f,true);
+            this.playStepSound();
+            this.setMoving(true);
             startAnimation();
         }
         this.removeX(inc);
@@ -348,7 +363,8 @@ public class Player implements WorldCharacter {
         if(!walkRight.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkRight;
-            audioStep.playAsSoundEffect(1.0f,.5f,true);
+            this.playStepSound();
+            this.setMoving(true);
             startAnimation();
         }
         this.addX(inc);
@@ -362,7 +378,8 @@ public class Player implements WorldCharacter {
         if(!walkUp.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkUp;
-            audioStep.playAsSoundEffect(1.0f,.5f,true);
+            this.playStepSound();
+            this.setMoving(true);
             startAnimation();
         }
         this.removeY(inc);
@@ -376,16 +393,25 @@ public class Player implements WorldCharacter {
         if(!walkDown.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = walkDown;
-            audioStep.playAsSoundEffect(1.0f,.5f,true);
+            this.playStepSound();
+            this.setMoving(true);
             startAnimation();
         }
         this.addY(inc);
+    }
+
+    public void playStepSound()
+    {
+        if(!this.isMoving()) {
+            audioStep.playAsSoundEffect(1.0f, .1f, true);
+        }
     }
 
     /**
      * Stop the player movement
      */
     public void playerStop(){
+        this.setMoving(false);
         if(walkLeft.equals(currentAnimation)){
             stopAnimation();
             currentAnimation = idleLeft;

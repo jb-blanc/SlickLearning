@@ -11,6 +11,7 @@ public class ConfigConstants {
         public static int MOVE_DOWN = Input.KEY_S;
         public static int MOVE_LEFT = Input.KEY_Q;
         public static int MOVE_RIGHT = Input.KEY_D;
+        public static int MOVE_RUN = Input.KEY_LSHIFT;
         public static int SWITCH_TORCH = Input.KEY_F;
         public static int ACTION = Input.KEY_E;
         public static int INVENTORY = Input.KEY_I;

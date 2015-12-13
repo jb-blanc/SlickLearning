@@ -10,6 +10,7 @@ import fr.angemaster.slick.rpg.game.models.player.Player;
 import fr.angemaster.slick.rpg.game.models.WorldMap;
 import fr.angemaster.slick.rpg.game.constants.ConfigConstants;
 import fr.angemaster.slick.rpg.game.constants.WorldConstants;
+import fr.angemaster.slick.utils.MathUtils;
 import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -115,6 +116,7 @@ public class Game extends BasicGameState {
         boolean moveright = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_RIGHT);
         boolean moveleft = ip.isKeyDown(ConfigConstants.Keyboard.MOVE_LEFT);
         boolean hasStop = !moveleft && !movedown && !moveright && !moveup;
+        boolean isRunning = !hasStop && ip.isKeyDown(ConfigConstants.Keyboard.MOVE_RUN);
 
         float speed = player.getSpeed();
 
@@ -123,7 +125,7 @@ public class Game extends BasicGameState {
         int playerH = player.getHeight();
         int playerW = player.getWidth();
 
-        float mov = i * speed;
+        float mov = i * speed * (isRunning ? 1.5f : 1f);
         float movForTest = mov * WorldConstants.ACCELERATION;
 
         float newPlayerPosY = moveup ? playerPosY - movForTest : movedown ? playerPosY + movForTest : playerPosY;
@@ -134,13 +136,13 @@ public class Game extends BasicGameState {
         /* MOVEMENT */
         if(moveup && playerPosY > borderTop && cango)
             player.moveUp(mov);
-        else if(movedown && playerPosY < borderBot-playerH && cango)
+        if(movedown && playerPosY < borderBot-playerH && cango)
             player.moveDown(mov);
-        else if(moveleft && playerPosX > borderLeft && cango)
+        if(moveleft && playerPosX > borderLeft && cango)
             player.moveLeft(mov);
-        else if(moveright && playerPosX < borderRight-playerW && cango)
+        if(moveright && playerPosX < borderRight-playerW && cango)
             player.moveRight(mov);
-        else if(hasStop)
+        if(hasStop)
             player.playerStop();
 
         /* PLAYER UTILITY */
@@ -275,7 +277,7 @@ public class Game extends BasicGameState {
         dir = dir >= 0 ? dir : 0;
         int halfAngle = 5;
         int maxHalfAngle = 20;
-        int angle[] = {0,90,180,270};
+        //int angle[] = {0,90,180,270};
 
         nightBlack.a = dayCycleTransitionAlpha;
 
@@ -286,13 +288,23 @@ public class Game extends BasicGameState {
         if(player.isTorchOn()){
             alphaMap.getGraphics().setColor(lightColor);
             for(int i=size,j=0 ; i<=maxSize;i+=15){
+                float cx = player.getX()-(i/2)+(player.getWidth()/2);
+                float cy = player.getY()-(i/2)+(player.getHeight()/2);
+                float mouseRot = MathUtils.getRotation(
+                        player.getX()+(player.getWidth()/2),
+                        player.getY()+(player.getWidth()/2),
+                        gc.getInput().getMouseX(),
+                        gc.getInput().getMouseY()
+                );
                 alphaMap.getGraphics().fillArc(
-                        player.getX()-(i/2)+(player.getWidth()/2),
-                        player.getY()-(i/2)+(player.getHeight()/2),
+                        cx,
+                        cy,
                         i,
                         i,
-                        angle[dir]-halfAngle-j,
-                        angle[dir]+halfAngle+j
+                        mouseRot-halfAngle-j,
+                        mouseRot+halfAngle+j
+                        //angle[dir]-halfAngle-j,
+                        //angle[dir]+halfAngle+j
                 );
                 j += j>=maxHalfAngle ? 0 : 1;
             }
