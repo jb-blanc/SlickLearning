@@ -1,14 +1,14 @@
-#SlickLearning
+# SlickLearning
 
 SlickLearning is a Java based game created with Slick2D allowing me to learn how to use this library.
 Actually, I don't really know what i'm going to implements into the game. But this is what I have in mind for the game type and basics.
 
-##Story
+## Story
 You are one of the last survivor of the Human race. Everything began when strange animals were invading some cities.
 First, everybody was thinking it was a genetic mutation, but nah, that would have been to easy. In fact, it was an Alien race who sent his units to the Earth to exterminate us.
 Today, there is few people left, and some communities has formed. Create one or join one to get stronger and maybe one day some places on Earth will be safe.
 
-##Technical/Gameplay desire
+## Technical/Gameplay desire
 This game is more of a technical exercice, so this is the things that I really want for this game :
  - *Technical* :
   - Internationalization : at least French and English
@@ -56,11 +56,11 @@ When a building is damaged, you can repair it with some resources.
 The Player/Community place will be the respawn point for every member.
 
 
-##Any ideas ?
+## Any ideas ?
 If you have any good ideas, you can send me an email or a message on github.
 If you want, you can use the bug tracker to give me some ideas with "enhancement" tickets.
 
-#Notes
+# Notes
 Until I find a good way to package the game into a runnable jar file and having good dependencies, this is the directories tree you should have at the project root (next to src directory) :
  - lib
   - natives
